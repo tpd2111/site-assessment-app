@@ -19,13 +19,18 @@ $.ajax({
         service: 'WFS',
         version: '2.0.0',
         request: 'GetFeature',
-        typeName: 'site_of_special_scientific_interest',
+        typeName: 'sssi',
         outputFormat: 'application/json',
         srsName: 'EPSG:4326'
     },
     success: function (data) {
         sssiLayer.addData(data);
         console.log("SSSI Data Loaded: ", data);
+        if (data.features && data.features.length > 0) {
+            console.log("First Feature Properties: ", data.features[0].properties);
+        } else {
+            console.warn("No features found in the SSSI data.");
+        }
     },
     error: function (xhr, status, error) {
         console.error("Failed to load SSSI data:", error);
