@@ -1,5 +1,13 @@
 // Wait until the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', function() {
+  // Check if toGeoJSON is defined
+  if (typeof toGeoJSON === 'undefined') {
+    console.error('toGeoJSON is not defined');
+    return;
+  }
+
+  console.log('toGeoJSON is defined:', toGeoJSON);
+
   // Create a Leaflet map instance
   var map = L.map('map').setView([54.5, -3], 6);
 
@@ -27,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var parser = new DOMParser();
       var xml = parser.parseFromString(text, 'text/xml');
 
-      // Convert GML to GeoJSON (assuming simple GML structures)
+      // Convert GML to GeoJSON
       var geojson = toGeoJSON.gml(xml);
 
       // Add GeoJSON layer to the map
