@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var map = L.map('map').setView([54.5, -3], 6);
 
   // Add a tile layer
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  var baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
     maxZoom: 18
   }).addTo(map);
@@ -20,6 +20,8 @@ document.addEventListener('DOMContentLoaded', function() {
   fetch(`${esriUrl}?${esriParams.toString()}`)
     .then(response => response.json())
     .then(data => {
+      console.log('Data fetched:', data); // Debugging statement
+
       // Add GeoJSON layer to the map
       var esriLayer = L.geoJSON(data, {
         style: {
@@ -27,7 +29,19 @@ document.addEventListener('DOMContentLoaded', function() {
           weight: 2,
           fillOpacity: 0.2
         }
-      }).addTo(map);
+      });
+
+      console.log('Layer created:', esriLayer); // Debugging statement
+
+      // Add layer control to toggle the layer
+      var overlayMaps = {
+        "SSSI Layer": esriLayer
+      };
+
+      L.control.layers(null, overlayMaps).addTo(map);
+
+      // Add the layer to the map by default
+      esriLayer.addTo(map);
 
       // Fit the map to the ESRI layer bounds
       map.fitBounds(esriLayer.getBounds());
