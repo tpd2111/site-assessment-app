@@ -7,6 +7,9 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
+// Declare sssiLayer in the global scope
+var sssiLayer;
+
 // Load UK SSSI data from the GeoJSON file on S3
 fetch('https://tpd2111bucket.s3.eu-north-1.amazonaws.com/SSSI_Impact_Risk_Zones_England_-3698026961114884751.geojson')
     .then(response => {
@@ -16,7 +19,7 @@ fetch('https://tpd2111bucket.s3.eu-north-1.amazonaws.com/SSSI_Impact_Risk_Zones_
         return response.json();
     })
     .then(data => {
-        var sssiLayer = L.geoJSON(data, {
+        sssiLayer = L.geoJSON(data, {
             style: function() {
                 return { color: 'red', weight: 2 };
             }
@@ -59,16 +62,20 @@ map.on(L.Draw.Event.CREATED, function (event) {
     drawnItems.addLayer(layer);
 
     // Check for intersection with SSSI layer
-    var intersects = false;
-    sssiLayer.eachLayer(function (sssiLayer) {
-        if (layer.getBounds().intersects(sssiLayer.getBounds())) {
-            intersects = true;
-        }
-    });
+    if (sssiLayer) {
+        var intersects = false;
+        sssiLayer.eachLayer(function (sssiLayer) {
+            if (layer.getBounds().intersects(sssiLayer.getBounds())) {
+                intersects = true;
+            }
+        });
 
-    if (intersects) {
-        alert('The drawn shape intersects with a Site of Special Scientific Interest!');
+        if (intersects) {
+            alert('The drawn shape intersects with a Site of Special Scientific Interest!');
+        } else {
+            alert('No intersection with any Site of Special Scientific Interest.');
+        }
     } else {
-        alert('No intersection with any Site of Special Scientific Interest.');
+        alert('SSSI Layer has not been loaded yet.');
     }
 });
