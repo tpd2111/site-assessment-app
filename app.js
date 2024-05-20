@@ -8,7 +8,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 // Layer to hold SSSI data
 var sssiLayer = L.geoJSON(null, {
-    style: { color: 'blue' }
+    style: { color: 'blue', weight: 2, opacity: 0.6 }
 }).addTo(map);
 
 // Load SSSI data from WFS
@@ -19,7 +19,7 @@ $.ajax({
         service: 'WFS',
         version: '1.0.0',
         request: 'GetFeature',
-        typeName: 'sssi',
+        typeName: 'site_of_special_scientific_interest',
         outputFormat: 'application/json',
         srsName: 'EPSG:4326'
     },
@@ -61,7 +61,7 @@ function analyzeIntersections(drawnLayer) {
 
     sssiLayer.eachLayer(function (layer) {
         if (turf.booleanIntersects(drawnGeometry, layer.toGeoJSON())) {
-            intersections.push(layer.feature.properties.name);
+            intersections.push(layer.feature.properties.name); // Adjust the property name as needed
         }
     });
 
