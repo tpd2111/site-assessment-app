@@ -2,7 +2,7 @@
 var map = L.map('map').setView([54.5, -3], 6);
 
 // Add OpenStreetMap layer
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
@@ -18,9 +18,9 @@ var sssiLayer = L.esri.featureLayer({
   url: 'https://environment.data.gov.uk/arcgis/rest/services/NE/SitesOfSpecialScientificInterestEngland/FeatureServer/0'
 });
 
-// Only load SSSI data at zoom level 10 or higher
+// Only load SSSI data at zoom level 12 or higher
 map.on('zoomend', function() {
-  if (map.getZoom() >= 10) {
+  if (map.getZoom() >= 12) {
     if (!map.hasLayer(sssiLayer)) {
       map.addLayer(sssiLayer);
     }
@@ -30,6 +30,15 @@ map.on('zoomend', function() {
     }
   }
 });
+
+// Add layer control
+var baseLayers = {
+  "OpenStreetMap": osmLayer
+};
+var overlays = {
+  "SSSI Layer": sssiLayer
+};
+L.control.layers(baseLayers, overlays).addTo(map);
 
 // Add drawing controls
 var drawnItems = new L.FeatureGroup();
@@ -57,11 +66,16 @@ map.on(L.Draw.Event.CREATED, function (e) {
   // Add the drawn layer to the map
   drawnItems.addLayer(layer);
 
-  // Check for intersection with SSSI layer
+  // Check for intersection with SSSI layer and display info
   var intersects = false;
+  var sssiInfo = document.getElementById('sssi-info');
+  sssiInfo.innerHTML = '';
+  
   sssiLayer.eachFeature(function (featureLayer) {
     if (layer.getBounds().intersects(featureLayer.getBounds())) {
       intersects = true;
+      var properties = featureLayer.feature.properties;
+      sssiInfo.innerHTML += 'Name: ' + properties.name + '<br>';
     }
   });
 
@@ -71,3 +85,9 @@ map.on(L.Draw.Event.CREATED, function (e) {
     alert('The drawn shape does not intersect with any SSSI area.');
   }
 });
+
+// Clear drawn items
+document.getElementById('clear-drawn-items').onclick = function() {
+  drawnItems.clearLayers();
+  document.getElementById('sssi-info').innerHTML = '';
+};
