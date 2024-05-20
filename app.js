@@ -9,26 +9,30 @@ document.addEventListener('DOMContentLoaded', function() {
     maxZoom: 18
   }).addTo(map);
 
-  // Create a WFS layer
-  var wfsLayer = new L.WFS({
-    url: "https://environment.data.gov.uk/spatialdata/sites-of-special-scientific-interest-england/wfs",
-    typeNS: "gov.uk",
-    typeName: "statistical-gis-boundaries",
-    crs: L.CRS.EPSG4326, // Ensure the correct CRS
-    showExisting: true
+  // Define WFS parameters
+  var wfsUrl = "https://environment.data.gov.uk/spatialdata/sites-of-special-scientific-interest-england/wfs";
+  var wfsParams = new URLSearchParams({
+    service: 'WFS',
+    version: '1.0.0',
+    request: 'GetFeature',
+    typeName: 'gov.uk:statistical-gis-boundaries',
+    outputFormat: 'application/json'
   });
 
-  wfsLayer.once('load', function() {
-    map.fitBounds(wfsLayer.getBounds());
-  });
+  // Fetch WFS data and add to map
+  fetch(`${wfsUrl}?${wfsParams.toString()}`)
+    .then(response => response.json())
+    .then(data => {
+      var wfsLayer = L.geoJSON(data, {
+        style: {
+          color: 'blue',
+          weight: 2,
+          fillOpacity: 0.2
+        }
+      }).addTo(map);
 
-  // Add the WFS layer to the map
-  wfsLayer.addTo(map);
-
-  // Style the WFS layer
-  wfsLayer.setStyle({
-    color: 'blue',
-    weight: 2,
-    fillOpacity: 0.2
-  });
+      // Fit the map to the WFS layer bounds
+      map.fitBounds(wfsLayer.getBounds());
+    })
+    .catch(error => console.error('Error loading WFS data:', error));
 });
