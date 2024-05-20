@@ -117,4 +117,13 @@ map.on(L.Draw.Event.CREATED, function (e) {
 
   // Check for intersection with layers and display info
   var intersects = false;
-  var sssiInfo =
+  var sssiInfo = document.getElementById('sssi-info');
+  sssiInfo.innerHTML = '';
+
+  // Check intersection with SSSI Layer
+  sssiLayer.eachFeature(function (featureLayer) {
+    if (layer.getBounds().intersects(featureLayer.getBounds())) {
+      intersects = true;
+      var properties = featureLayer.feature.properties;
+      for (var key in properties) {
+        sssiInfo.innerHTML += key + ": "
