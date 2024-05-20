@@ -1,60 +1,76 @@
-// Initialize the map
-var map = L.map('map').setView([52.3555, -1.1743], 6);
+<script>
+  // Initialize the map
+  var map = L.map('map').setView([54.5, -3], 6);
 
-// Add OpenStreetMap layer
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  // Add OpenStreetMap layer
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
-    attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
 
-// Load UK SSSI data from the ESRI REST service
-var sssiLayer = L.esri.featureLayer({
+  // Add zoom level display
+  var zoomLevel = document.getElementById('zoom-level');
+  map.on('zoomend', function() {
+    zoomLevel.innerHTML = 'Zoom Level: ' + map.getZoom();
+  });
+
+  // Add ESRI layer for SSSI
+  var sssiLayer = L.esri.featureLayer({
     url: 'https://environment.data.gov.uk/arcgis/rest/services/NE/SitesOfSpecialScientificInterestEngland/FeatureServer/0',
-    style: function() {
-        return { color: 'red', weight: 2 };
+    where: "1=1"
+  });
+
+  // Only load SSSI data at zoom level 10 or higher
+  map.on('zoomend', function() {
+    if (map.getZoom() >= 10) {
+      if (!map.hasLayer(sssiLayer)) {
+        map.addLayer(sssiLayer);
+      }
+    } else {
+      if (map.hasLayer(sssiLayer)) {
+        map.removeLayer(sssiLayer);
+      }
     }
-}).addTo(map);
+  });
 
-// Add drawing functionality
-var drawnItems = new L.FeatureGroup();
-map.addLayer(drawnItems);
+  // Add drawing controls
+  var drawnItems = new L.FeatureGroup();
+  map.addLayer(drawnItems);
 
-var drawControl = new L.Control.Draw({
+  var drawControl = new L.Control.Draw({
     edit: {
-        featureGroup: drawnItems
+      featureGroup: drawnItems
     },
     draw: {
-        polyline: true,
-        polygon: true,
-        circle: false,
-        marker: false,
-        rectangle: true
+      polyline: true,
+      polygon: true,
+      circle: false,
+      marker: false,
+      rectangle: false
     }
-});
-map.addControl(drawControl);
+  });
+  map.addControl(drawControl);
 
-map.on(L.Draw.Event.CREATED, function (event) {
-    var layer = event.layer;
+  // Handle created shapes
+  map.on(L.Draw.Event.CREATED, function (e) {
+    var type = e.layerType,
+        layer = e.layer;
+
+    // Add the drawn layer to the map
     drawnItems.addLayer(layer);
 
     // Check for intersection with SSSI layer
-    sssiLayer.query().intersects(layer.toGeoJSON()).run(function(error, featureCollection){
-        if (featureCollection.features.length > 0) {
-            alert('The drawn shape intersects with a Site of Special Scientific Interest!');
-        } else {
-            alert('No intersection with any Site of Special Scientific Interest.');
-        }
+    var intersects = false;
+    sssiLayer.eachFeature(function (featureLayer) {
+      if (layer.getBounds().intersects(featureLayer.getBounds())) {
+        intersects = true;
+      }
     });
-});
 
-// Add layer control
-var baseLayers = {
-    "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
-};
-
-var overlays = {
-    "SSSI Layer": sssiLayer,
-    "Drawn Items": drawnItems
-};
-
-L.control.layers(baseLayers, overlays).addTo(map);
+    if (intersects) {
+      alert('The drawn shape intersects with an SSSI area.');
+    } else {
+      alert('The drawn shape does not intersect with any SSSI area.');
+    }
+  });
+</script>
