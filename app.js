@@ -7,8 +7,13 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-// Declare sssiLayer in the global scope
-var sssiLayer;
+// Load UK SSSI data from the ESRI REST service
+var sssiLayer = L.esri.featureLayer({
+    url: 'https://environment.data.gov.uk/arcgis/rest/services/NE/SitesOfSpecialScientificInterestEngland/FeatureServer/0',
+    style: function() {
+        return { color: 'red', weight: 2 };
+    }
+}).addTo(map);
 
 // Add drawing functionality
 var drawnItems = new L.FeatureGroup();
@@ -26,61 +31,30 @@ var drawControl = new L.Control.Draw({
         rectangle: true
     }
 });
-
-// Initially disable the draw control
-map.removeControl(drawControl);
-
-// Load UK SSSI data from the GeoJSON file on S3
-fetch('https://tpd2111bucket.s3.eu-north-1.amazonaws.com/SSSI_Impact_Risk_Zones_England_-3698026961114884751.geojson')
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok ' + response.statusText);
-        }
-        return response.json();
-    })
-    .then(data => {
-        sssiLayer = L.geoJSON(data, {
-            style: function() {
-                return { color: 'red', weight: 2 };
-            }
-        }).addTo(map);
-
-        // Add layer control
-        var baseLayers = {
-            "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
-        };
-
-        var overlays = {
-            "SSSI Layer": sssiLayer,
-            "Drawn Items": drawnItems
-        };
-
-        L.control.layers(baseLayers, overlays).addTo(map);
-
-        // Enable the draw control once the SSSI layer is loaded
-        map.addControl(drawControl);
-    })
-    .catch(error => console.error('Error loading GeoJSON:', error));
+map.addControl(drawControl);
 
 map.on(L.Draw.Event.CREATED, function (event) {
     var layer = event.layer;
     drawnItems.addLayer(layer);
 
     // Check for intersection with SSSI layer
-    if (sssiLayer) {
-        var intersects = false;
-        sssiLayer.eachLayer(function (sssiLayer) {
-            if (layer.getBounds().intersects(sssiLayer.getBounds())) {
-                intersects = true;
-            }
-        });
-
-        if (intersects) {
+    sssiLayer.query().intersects(layer.toGeoJSON()).run(function(error, featureCollection){
+        if (featureCollection.features.length > 0) {
             alert('The drawn shape intersects with a Site of Special Scientific Interest!');
         } else {
             alert('No intersection with any Site of Special Scientific Interest.');
         }
-    } else {
-        alert('SSSI Layer has not been loaded yet.');
-    }
+    });
 });
+
+// Add layer control
+var baseLayers = {
+    "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+};
+
+var overlays = {
+    "SSSI Layer": sssiLayer,
+    "Drawn Items": drawnItems
+};
+
+L.control.layers(baseLayers, overlays).addTo(map);
