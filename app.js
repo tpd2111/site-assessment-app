@@ -17,7 +17,7 @@ $.ajax({
     url: wfsUrl,
     data: {
         service: 'WFS',
-        version: '1.0.0',
+        version: '2.0.0',
         request: 'GetFeature',
         typeName: 'site_of_special_scientific_interest',
         outputFormat: 'application/json',
@@ -25,6 +25,10 @@ $.ajax({
     },
     success: function (data) {
         sssiLayer.addData(data);
+        console.log("SSSI Data Loaded: ", data);
+    },
+    error: function (xhr, status, error) {
+        console.error("Failed to load SSSI data:", error);
     }
 });
 
@@ -57,11 +61,14 @@ map.on(L.Draw.Event.CREATED, function (event) {
 
 function analyzeIntersections(drawnLayer) {
     var drawnGeometry = drawnLayer.toGeoJSON();
+    console.log("Drawn Geometry: ", drawnGeometry);
+
     var intersections = [];
 
     sssiLayer.eachLayer(function (layer) {
-        if (turf.booleanIntersects(drawnGeometry, layer.toGeoJSON())) {
-            intersections.push(layer.feature.properties.name); // Adjust the property name as needed
+        var sssiGeometry = layer.toGeoJSON();
+        if (turf.booleanIntersects(drawnGeometry, sssiGeometry)) {
+            intersections.push(sssiGeometry.properties.name); // Adjust the property name as needed
         }
     });
 
