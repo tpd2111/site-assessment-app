@@ -9,7 +9,12 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 // Load UK SSSI data from the GeoJSON file on S3
 fetch('https://tpd2111bucket.s3.eu-north-1.amazonaws.com/SSSI_Impact_Risk_Zones_England_-3698026961114884751.geojson')
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
+        }
+        return response.json();
+    })
     .then(data => {
         var sssiLayer = L.geoJSON(data, {
             style: function() {
