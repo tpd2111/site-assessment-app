@@ -19,11 +19,11 @@ var encodedUrl = encodeURIComponent(wfsUrl);
 $.ajax({
     url: proxyUrl + encodedUrl,
     success: function(response) {
-        var data = JSON.parse(response);
-        sssiLayer.addData(data);
-        console.log("SSSI Data Loaded: ", data);
-        if (data.features && data.features.length > 0) {
-            console.log("First Feature Properties: ", data.features[0].properties);
+        var data = JSON.parse(response.contents || response); // Adjust parsing
+        console.log("Response Data: ", data);
+        if (data && data.features) {
+            sssiLayer.addData(data);
+            console.log("SSSI Data Loaded: ", data);
         } else {
             console.warn("No features found in the SSSI data.");
         }
