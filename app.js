@@ -11,15 +11,15 @@ var sssiLayer = L.geoJSON(null, {
     style: { color: 'blue', weight: 2, opacity: 0.6 }
 }).addTo(map);
 
-// Load SSSI data from WFS using AllOrigins proxy
-var proxyUrl = 'https://api.allorigins.win/get?url=';
+// Load SSSI data from WFS using another CORS proxy
+var proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=';
 var wfsUrl = 'https://environment.data.gov.uk/spatialdata/sites-of-special-scientific-interest-england/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=sssi&outputFormat=application/json&srsName=EPSG:4326';
 var encodedUrl = encodeURIComponent(wfsUrl);
 
 $.ajax({
     url: proxyUrl + encodedUrl,
     success: function(response) {
-        var data = JSON.parse(response.contents);
+        var data = JSON.parse(response);
         sssiLayer.addData(data);
         console.log("SSSI Data Loaded: ", data);
         if (data.features && data.features.length > 0) {
