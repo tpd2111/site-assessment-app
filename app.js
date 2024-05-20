@@ -11,21 +11,15 @@ var sssiLayer = L.geoJSON(null, {
     style: { color: 'blue', weight: 2, opacity: 0.6 }
 }).addTo(map);
 
-// Load SSSI data from WFS using CORS proxy
-var corsProxy = 'https://cors-anywhere.herokuapp.com/';
-var wfsUrl = corsProxy + 'https://environment.data.gov.uk/spatialdata/sites-of-special-scientific-interest-england/wfs';
+// Load SSSI data from WFS using AllOrigins proxy
+var proxyUrl = 'https://api.allorigins.win/get?url=';
+var wfsUrl = 'https://environment.data.gov.uk/spatialdata/sites-of-special-scientific-interest-england/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=sssi&outputFormat=application/json&srsName=EPSG:4326';
+var encodedUrl = encodeURIComponent(wfsUrl);
 
 $.ajax({
-    url: wfsUrl,
-    data: {
-        service: 'WFS',
-        version: '2.0.0',
-        request: 'GetFeature',
-        typeName: 'sssi',
-        outputFormat: 'application/json',
-        srsName: 'EPSG:4326'
-    },
-    success: function (data) {
+    url: proxyUrl + encodedUrl,
+    success: function(response) {
+        var data = JSON.parse(response.contents);
         sssiLayer.addData(data);
         console.log("SSSI Data Loaded: ", data);
         if (data.features && data.features.length > 0) {
@@ -34,7 +28,7 @@ $.ajax({
             console.warn("No features found in the SSSI data.");
         }
     },
-    error: function (xhr, status, error) {
+    error: function(xhr, status, error) {
         console.error("Failed to load SSSI data:", error);
     }
 });
