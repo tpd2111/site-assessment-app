@@ -1,81 +1,25 @@
-// Initialize the map
-var map = L.map('map').setView([51.505, -0.09], 6);
+```javascript
+// Create a Leaflet map instance
+var map = L.map('map').setView([54.5, -3], 6);
 
-// Add a base layer
+// Add a tile layer
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
+  attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+  maxZoom: 18
 }).addTo(map);
 
-// Layer to hold SSSI data
-var sssiLayer = L.geoJSON(null, {
-    style: { color: 'blue', weight: 2, opacity: 0.6 }
+// Create a WFS layer
+var wfsLayer = L.GeoJSON.WFS("https://data.gov.uk/data/wfs", {
+  showExisting: true,
+  typeNS: "gov.uk",
+  typeName: "statistical-gis-boundaries"
 }).addTo(map);
 
-// Load SSSI data from WFS using another CORS proxy
-var proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=';
-var wfsUrl = 'https://environment.data.gov.uk/spatialdata/sites-of-special-scientific-interest-england/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=sssi&outputFormat=application/json&srsName=EPSG:4326';
-var encodedUrl = encodeURIComponent(wfsUrl);
-
-$.ajax({
-    url: proxyUrl + encodedUrl,
-    success: function(response) {
-        var data = JSON.parse(response.contents || response); // Adjust parsing
-        console.log("Response Data: ", data);
-        if (data && data.features) {
-            sssiLayer.addData(data);
-            console.log("SSSI Data Loaded: ", data);
-        } else {
-            console.warn("No features found in the SSSI data.");
-        }
-    },
-    error: function(xhr, status, error) {
-        console.error("Failed to load SSSI data:", error);
-    }
+// Style the WFS layer
+wfsLayer.setStyle({
+  color: 'blue',
+  weight: 2,
+  fillOpacity: 0.2
 });
 
-// Initialize the draw control
-var drawnItems = new L.FeatureGroup();
-map.addLayer(drawnItems);
-
-var drawControl = new L.Control.Draw({
-    edit: {
-        featureGroup: drawnItems
-    },
-    draw: {
-        polygon: true,
-        polyline: true,
-        rectangle: false,
-        circle: false,
-        marker: false
-    }
-});
-map.addControl(drawControl);
-
-// Handle the created polygon or polyline and analyze intersections
-map.on(L.Draw.Event.CREATED, function (event) {
-    var layer = event.layer;
-    drawnItems.addLayer(layer);
-
-    // Analyze intersections
-    analyzeIntersections(layer);
-});
-
-function analyzeIntersections(drawnLayer) {
-    var drawnGeometry = drawnLayer.toGeoJSON();
-    console.log("Drawn Geometry: ", drawnGeometry);
-
-    var intersections = [];
-
-    sssiLayer.eachLayer(function (layer) {
-        var sssiGeometry = layer.toGeoJSON();
-        if (turf.booleanIntersects(drawnGeometry, sssiGeometry)) {
-            intersections.push(sssiGeometry.properties.name); // Adjust the property name as needed
-        }
-    });
-
-    if (intersections.length > 0) {
-        alert('Intersections found with the following SSSI sites: \n' + intersections.join(', '));
-    } else {
-        alert('No intersections found.');
-    }
-}
+```
