@@ -11,8 +11,10 @@ var sssiLayer = L.geoJSON(null, {
     style: { color: 'blue', weight: 2, opacity: 0.6 }
 }).addTo(map);
 
-// Load SSSI data from WFS
-var wfsUrl = 'https://environment.data.gov.uk/spatialdata/sites-of-special-scientific-interest-england/wfs';
+// Load SSSI data from WFS using CORS proxy
+var corsProxy = 'https://cors-anywhere.herokuapp.com/';
+var wfsUrl = corsProxy + 'https://environment.data.gov.uk/spatialdata/sites-of-special-scientific-interest-england/wfs';
+
 $.ajax({
     url: wfsUrl,
     data: {
