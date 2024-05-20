@@ -16,14 +16,22 @@ document.addEventListener('DOMContentLoaded', function() {
     version: '1.0.0',
     request: 'GetFeature',
     typeName: 'gov.uk:statistical-gis-boundaries',
-    outputFormat: 'application/json'
+    outputFormat: 'text/xml; subtype=gml/3.1.1'
   });
 
   // Fetch WFS data and add to map
   fetch(`${wfsUrl}?${wfsParams.toString()}`)
-    .then(response => response.json())
-    .then(data => {
-      var wfsLayer = L.geoJSON(data, {
+    .then(response => response.text())
+    .then(text => {
+      // Parse XML
+      var parser = new DOMParser();
+      var xml = parser.parseFromString(text, 'text/xml');
+
+      // Convert GML to GeoJSON (assuming simple GML structures)
+      var geojson = toGeoJSON.gml(xml);
+
+      // Add GeoJSON layer to the map
+      var wfsLayer = L.geoJSON(geojson, {
         style: {
           color: 'blue',
           weight: 2,
