@@ -18,6 +18,27 @@ var sssiLayer = L.esri.featureLayer({
   url: 'https://environment.data.gov.uk/arcgis/rest/services/NE/SitesOfSpecialScientificInterestEngland/FeatureServer/0'
 });
 
+// Add GeoJSON layer for Conservation Areas
+var conservationAreasLayer = L.geoJson(null, {
+  style: function (feature) {
+    return { color: "#ff0000" };
+  },
+  onEachFeature: function (feature, layer) {
+    if (feature.properties) {
+      layer.bindPopup(Object.keys(feature.properties).map(function (k) {
+        return k + ": " + feature.properties[k];
+      }).join("<br />"), {
+        maxHeight: 200
+      });
+    }
+  }
+});
+
+// Load the GeoJSON data
+fetch('https://services-eu1.arcgis.com/ZOdPfBS3aqqDYPUQ/arcgis/rest/services/Conservation_Areas/FeatureServer/1/query?outFields=*&where=1%3D1&f=geojson')
+  .then(response => response.json())
+  .then(data => conservationAreasLayer.addData(data));
+
 // Only load SSSI data at zoom level 12 or higher
 map.on('zoomend', function() {
   if (map.getZoom() >= 12) {
@@ -36,7 +57,8 @@ var baseLayers = {
   "OpenStreetMap": osmLayer
 };
 var overlays = {
-  "SSSI Layer": sssiLayer
+  "SSSI Layer": sssiLayer,
+  "Conservation Areas": conservationAreasLayer
 };
 L.control.layers(baseLayers, overlays).addTo(map);
 
@@ -70,17 +92,19 @@ map.on(L.Draw.Event.CREATED, function (e) {
   var intersects = false;
   var sssiInfo = document.getElementById('sssi-info');
   sssiInfo.innerHTML = '';
-  
+
   sssiLayer.eachFeature(function (featureLayer) {
     if (layer.getBounds().intersects(featureLayer.getBounds())) {
       intersects = true;
       var properties = featureLayer.feature.properties;
-      sssiInfo.innerHTML += 'Name: ' + properties.name + '<br>';
+      for (var key in properties) {
+        sssiInfo.innerHTML += key + ": " + properties[key] + "<br>";
+      }
     }
   });
 
   if (intersects) {
-    alert('The drawn shape intersects with an SSSI area.');
+    alert('The drawn shape intersects with an SSSI area. See details in the SSSI Info box.');
   } else {
     alert('The drawn shape does not intersect with any SSSI area.');
   }
