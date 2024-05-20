@@ -21,11 +21,16 @@
       right: 10px;
       z-index: 1000;
     }
+    .button {
+      margin: 10px;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
   <div id="zoom-level" class="info">Zoom Level: </div>
+  <div id="sssi-info" class="info"></div>
+  <button id="clear-drawn-items" class="button">Clear Drawn Items</button>
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
   <script src="https://unpkg.com/esri-leaflet@2.5.3/dist/esri-leaflet.js"></script>
