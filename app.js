@@ -8,32 +8,20 @@ document.addEventListener('DOMContentLoaded', function() {
     maxZoom: 18
   }).addTo(map);
 
-  // Define WFS parameters
-  var wfsUrl = "https://environment.data.gov.uk/spatialdata/sites-of-special-scientific-interest-england/wfs";
-  var wfsParams = new URLSearchParams({
-    service: 'WFS',
-    version: '1.0.0',
-    request: 'GetFeature',
-    typeName: 'gov.uk:statistical-gis-boundaries',
-    outputFormat: 'text/xml; subtype=gml/3.1.1'
+  // Define the ESRI REST API URL
+  var esriUrl = "https://environment.data.gov.uk/arcgis/rest/services/NE/SitesOfSpecialScientificInterestEngland/FeatureServer/0/query";
+  var esriParams = new URLSearchParams({
+    where: "1=1",
+    outFields: "*",
+    f: "geojson"
   });
 
-  // Fetch WFS data and add to map
-  fetch(`${wfsUrl}?${wfsParams.toString()}`)
-    .then(response => response.text())
-    .then(text => {
-      // Parse XML
-      var parser = new DOMParser();
-      var xml = parser.parseFromString(text, 'text/xml');
-
-      // Convert GML to GeoJSON using OpenLayers
-      var format = new ol.format.WFS();
-      var features = format.readFeatures(xml);
-      var geojsonFormat = new ol.format.GeoJSON();
-      var geojson = geojsonFormat.writeFeaturesObject(features);
-
+  // Fetch data from the ESRI REST API
+  fetch(`${esriUrl}?${esriParams.toString()}`)
+    .then(response => response.json())
+    .then(data => {
       // Add GeoJSON layer to the map
-      var wfsLayer = L.geoJSON(geojson, {
+      var esriLayer = L.geoJSON(data, {
         style: {
           color: 'blue',
           weight: 2,
@@ -41,8 +29,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }).addTo(map);
 
-      // Fit the map to the WFS layer bounds
-      map.fitBounds(wfsLayer.getBounds());
+      // Fit the map to the ESRI layer bounds
+      map.fitBounds(esriLayer.getBounds());
     })
-    .catch(error => console.error('Error loading WFS data:', error));
+    .catch(error => console.error('Error loading ESRI data:', error));
 });
