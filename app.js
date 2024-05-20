@@ -9,7 +9,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 // Create a WFS layer
-var wfsLayer = L.GeoJSON.WFS("https://data.gov.uk/data/wfs", {
+var wfsLayer = L.GeoJSON.WFS("https://environment.data.gov.uk/spatialdata/sites-of-special-scientific-interest-england/wfs", {
   showExisting: true,
   typeNS: "gov.uk",
   typeName: "statistical-gis-boundaries"
