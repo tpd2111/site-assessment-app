@@ -16,7 +16,14 @@ map.on('zoomend', function() {
 // Add ESRI layer for SSSI
 var sssiLayer = L.esri.featureLayer({
   url: 'https://environment.data.gov.uk/arcgis/rest/services/NE/SitesOfSpecialScientificInterestEngland/FeatureServer/0',
-  simplifyFactor: 0.5
+  simplifyFactor: 0.5,
+  onEachFeature: function (feature, layer) {
+    layer.on('click', function () {
+      var properties = feature.properties;
+      var details = "SSSI Name: " + properties.sssi_name + "<br>";
+      alert(details);
+    });
+  }
 });
 
 // Add GeoJSON layer for Conservation Areas
@@ -42,9 +49,13 @@ var listedBuildingsLayer = L.geoJson(null, {
     return { color: "#0000ff" };
   },
   onEachFeature: function (feature, layer) {
-    layer.bindPopup(Object.keys(feature.properties).map(function (k) {
-      return k + ": " + feature.properties[k];
-    }).join("<br />"));
+    layer.on('click', function () {
+      var properties = feature.properties;
+      var details = Object.keys(properties).map(function (k) {
+        return k + ": " + properties[k];
+      }).join("<br />");
+      alert(details);
+    });
   }
 });
 
