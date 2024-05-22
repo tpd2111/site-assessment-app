@@ -135,4 +135,48 @@ map.on(L.Draw.Event.CREATED, function (e) {
   conservationAreasLayer.eachLayer(function (featureLayer) {
     if (layer.getBounds().intersects(featureLayer.getBounds())) {
       intersects = true;
-      var propertie
+      var properties = featureLayer.feature.properties;
+      for (var key in properties) {
+        sssiInfo.innerHTML += key + ": " + properties[key] + "<br>";
+      }
+    }
+  });
+
+  // Check intersection with Listed Buildings Layer
+  listedBuildingsLayer.eachLayer(function (featureLayer) {
+    if (layer.getBounds().intersects(featureLayer.getBounds())) {
+      intersects = true;
+      var properties = featureLayer.feature.properties;
+      for (var key in properties) {
+        sssiInfo.innerHTML += key + ": " + properties[key] + "<br>";
+      }
+    }
+  });
+
+  if (intersects) {
+    alert('The drawn shape intersects with one or more layers. See details in the SSSI Info box.');
+  } else {
+    alert('The drawn shape does not intersect with any SSSI, Conservation Area, or Listed Building.');
+  }
+});
+
+// Clear drawn items
+document.getElementById('clear-drawn-items').onclick = function() {
+  drawnItems.clearLayers();
+  document.getElementById('sssi-info').innerHTML = '';
+};
+
+// Click event to show details of the clicked asset
+function showDetails(e) {
+  var layer = e.target;
+  var properties = layer.feature.properties;
+  var details = Object.keys(properties).map(function (k) {
+    return k + ": " + properties[k];
+  }).join("<br />");
+  alert(details);
+}
+
+// Add click event listeners to each layer
+sssiLayer.on('click', showDetails);
+conservationAreasLayer.on('click', showDetails);
+listedBuildingsLayer.on('click', showDetails);
