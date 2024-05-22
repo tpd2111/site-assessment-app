@@ -7,31 +7,73 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"/>
   <style>
-    #map {
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
       height: 100vh;
-      width: 100%;
+    }
+    #header {
+      background: #333;
+      color: white;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    #header h1 {
+      margin: 0;
+    }
+    #header input[type="text"] {
+      padding: 5px;
+      font-size: 1em;
+    }
+    #container {
+      display: flex;
+      flex: 1;
+    }
+    #map {
+      flex: 1;
+    }
+    #sidebar {
+      width: 300px;
+      background: #f4f4f4;
+      padding: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
     }
     .info {
-      padding: 6px 8px;
-      background: white;
-      background: rgba(255, 255, 255, 0.8);
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-      border-radius: 5px;
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 1000;
+      margin-bottom: 10px;
     }
     .button {
-      margin: 10px;
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .button:hover {
+      background: #0056b3;
     }
   </style>
 </head>
 <body>
-  <div id="map"></div>
-  <div id="zoom-level" class="info">Zoom Level: </div>
-  <div id="sssi-info" class="info"></div>
-  <button id="clear-drawn-items" class="button">Clear Drawn Items</button>
+  <div id="header">
+    <h1>SSSI Data Viewer</h1>
+    <input type="text" id="search-box" placeholder="Search...">
+  </div>
+  <div id="container">
+    <div id="map"></div>
+    <div id="sidebar">
+      <div id="zoom-level" class="info">Zoom Level: </div>
+      <div id="sssi-info" class="info"></div>
+      <button id="clear-drawn-items" class="button">Clear Drawn Items</button>
+    </div>
+  </div>
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
   <script src="https://unpkg.com/esri-leaflet@2.5.3/dist/esri-leaflet.js"></script>
