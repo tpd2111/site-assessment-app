@@ -64,6 +64,23 @@ fetch('https://services-eu1.arcgis.com/ZOdPfBS3aqqDYPUQ/arcgis/rest/services/Nat
   .then(response => response.json())
   .then(data => listedBuildingsLayer.addData(data));
 
+// Add WFS layer for Flood Zone 2
+var floodZone2Layer = L.WFS({
+  url: 'https://environment.data.gov.uk/spatialdata/flood-map-for-planning-rivers-and-sea-flood-zone-2/wfs',
+  typeName: 'Flood_Map_for_Planning_Rivers_and_Sea_Flood_Zone_2',
+  crs: L.CRS.EPSG4326,
+  maxFeatures: 1000,
+  style: {
+    color: '#0000ff',
+    weight: 2
+  },
+  onEachFeature: function (feature, layer) {
+    layer.bindPopup(Object.keys(feature.properties).map(function (k) {
+      return k + ": " + feature.properties[k];
+    }).join("<br />"));
+  }
+});
+
 // Only load layers at zoom level 12 or higher
 map.on('zoomend', function() {
   if (map.getZoom() >= 12) {
@@ -76,6 +93,9 @@ map.on('zoomend', function() {
     if (!map.hasLayer(listedBuildingsLayer)) {
       map.addLayer(listedBuildingsLayer);
     }
+    if (!map.hasLayer(floodZone2Layer)) {
+      map.addLayer(floodZone2Layer);
+    }
   } else {
     if (map.hasLayer(sssiLayer)) {
       map.removeLayer(sssiLayer);
@@ -85,6 +105,9 @@ map.on('zoomend', function() {
     }
     if (map.hasLayer(listedBuildingsLayer)) {
       map.removeLayer(listedBuildingsLayer);
+    }
+    if (map.hasLayer(floodZone2Layer)) {
+      map.removeLayer(floodZone2Layer);
     }
   }
 });
@@ -96,7 +119,8 @@ var baseLayers = {
 var overlays = {
   "SSSI Layer": sssiLayer,
   "Conservation Areas": conservationAreasLayer,
-  "Listed Buildings": listedBuildingsLayer
+  "Listed Buildings": listedBuildingsLayer,
+  "Flood Zone 2": floodZone2Layer
 };
 L.control.layers(baseLayers, overlays).addTo(map);
 
@@ -164,10 +188,21 @@ map.on(L.Draw.Event.CREATED, function (e) {
     }
   });
 
+  // Check intersection with Flood Zone 2 Layer
+  floodZone2Layer.eachLayer(function (featureLayer) {
+    if (layer.getBounds().intersects(featureLayer.getBounds())) {
+      intersects = true;
+      var properties = featureLayer.feature.properties;
+      for (var key in properties) {
+        sssiInfo.innerHTML += key + ": " + properties[key] + "<br>";
+      }
+    }
+  });
+
   if (intersects) {
     alert('The drawn shape intersects with one or more layers. See details in the SSSI Info box.');
   } else {
-    alert('The drawn shape does not intersect with any SSSI, Conservation Area, or Listed Building.');
+    alert('The drawn shape does not intersect with any SSSI, Conservation Area, Listed Building, or Flood Zone 2.');
   }
 });
 
@@ -191,3 +226,4 @@ function showDetails(e) {
 sssiLayer.on('click', showDetails);
 conservationAreasLayer.on('click', showDetails);
 listedBuildingsLayer.on('click', showDetails);
+floodZone2Layer.on('click', showDetails);
